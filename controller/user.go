@@ -77,7 +77,6 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	user.CreatedAt = inputvalidator.Timenow(user.CreatedAt.Local().Location())
 	user.IsActive = true
 	response := model.InsertUser(user)
-
 	fmt.Println("\n", response, "inserted successfully !")
 	fmt.Fprint(w, `New Id inserted`, "\t", response)
 
