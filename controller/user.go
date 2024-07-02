@@ -14,6 +14,8 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	// inputvalidator.IsMethodValid(w, r, "POST")
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	inputvalidator.IsMethodValid(w, r, "POST")
 
 	err := json.NewDecoder(r.Body).Decode(&user)
