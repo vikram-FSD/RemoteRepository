@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/atomedgesoft/scheduler/config"
+	"github.com/atomedgesoft/calendariq/config"
 )
 
 type User struct {

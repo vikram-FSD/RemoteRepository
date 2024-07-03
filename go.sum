@@ -1,5 +1,7 @@
 github.com/AfterShip/email-verifier v1.4.0 h1:DoQplvVFVhZUfS5fPiVnmCQDr5i1tv+ivUV0TFd2AZo=
 github.com/AfterShip/email-verifier v1.4.0/go.mod h1:JNPV1KZpTq4TArmss1NAOJsTD8JRa/ZElbCAJCEgikg=
+github.com/atomedgesoft/inputvalidator v0.0.0-20240617084308-3411eb9a8914 h1:Au2fgpTne1JGuNVsAGgCY3pdxR576x0Hs3t1RQLt/Nc=
+github.com/atomedgesoft/inputvalidator v0.0.0-20240617084308-3411eb9a8914/go.mod h1:4SIbxLutmJ5cL1lszzm0wGBkWA4IDHO7OcAWAczKsPw=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

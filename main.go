@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/atomedgesoft/scheduler/config"
-	user "github.com/atomedgesoft/scheduler/controller"
+	"github.com/atomedgesoft/calendariq/config"
+	user "github.com/atomedgesoft/calendariq/controller"
 	"github.com/gorilla/mux"
 )
 

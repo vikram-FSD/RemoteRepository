@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/atomedgesoft/scheduler/inputvalidator"
-	"github.com/atomedgesoft/scheduler/model"
+	"github.com/atomedgesoft/calendariq/inputvalidator"
+	"github.com/atomedgesoft/calendariq/model"
 )
 
 func InsertUser(w http.ResponseWriter, r *http.Request) {
@@ -77,8 +77,9 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	user.CreatedAt = inputvalidator.Timenow(user.CreatedAt.Local().Location())
 	user.IsActive = true
 	response := model.InsertUser(user)
+	w.Write([]byte(response + " Inserted"))
 	fmt.Println("\n", response, "inserted successfully !")
-	fmt.Fprint(w, `New Id inserted`, "\t", response)
+	// fmt.Fprint(w, `New Id inserted`, "\t", response)
 
 }
 
