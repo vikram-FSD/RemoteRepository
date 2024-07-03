@@ -11,7 +11,10 @@ import (
 )
 
 func InsertUser(w http.ResponseWriter, r *http.Request) {
-	var user model.User
+	var 
+	( user model.User
+		Message = make( map[string]string )
+	)
 	// inputvalidator.IsMethodValid(w, r, "POST")
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
@@ -77,7 +80,12 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	user.CreatedAt = inputvalidator.Timenow(user.CreatedAt.Local().Location())
 	user.IsActive = true
 	response := model.InsertUser(user)
-	w.Write([]byte(response + " Inserted"))
+	Message["message"] = "Inserted Successfully"
+
+	fmt.Println( Message )
+	output, _ := json.Marshal( Message )
+	w.Write( output )
+	return 
 	fmt.Println("\n", response, "inserted successfully !")
 	// fmt.Fprint(w, `New Id inserted`, "\t", response)
 
