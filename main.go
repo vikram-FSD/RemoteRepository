@@ -22,4 +22,5 @@ func main() {
 
 	log.Println("Server started on :80")
 	log.Fatal(http.ListenAndServe(":80", router))
+
 }

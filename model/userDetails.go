@@ -23,9 +23,9 @@ func InsertUser(user User) string {
 	db, _ := config.ConnectDB()
 	defer db.Close()
 
-	sqlStmt := `insert into users(id, firstname, lastname, emailaddress, signinthrough, createdat, timezone, country, isactive)values($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`
+	sqlStmt := `insert into users(id, firstname, lastname, emailaddress, signinthrough, createdat, timezone, isactive, country)values($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`
 
-	err := db.QueryRow(sqlStmt, user.Id, user.FirstName, user.LastName, user.EmailAddress, user.Signinthrough, user.CreatedAt, user.TimeZone, user.Country, user.IsActive).Scan(&user.Id)
+	err := db.QueryRow(sqlStmt, user.Id, user.FirstName, user.LastName, user.EmailAddress, user.Signinthrough, user.CreatedAt, user.TimeZone, user.IsActive, user.Country).Scan(&user.Id)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -33,7 +33,31 @@ func InsertUser(user User) string {
 }
 
 // getting user from the db
-func getUser(user User) {
-	fmt.Println(user)
+func ReturnUser(user User) ([]User, error) {
+	db, err := config.ConnectDB()
+	if err != nil {
+		fmt.Println(err)
+	}
+	//query for retrieving the users from the Database
+	sqlStmt := `select * from users`
+	rows, err := db.Query(sqlStmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var sliceUser []User
+	//Loop through rows using scan to assign column data to the struct fields
+	for rows.Next() {
+		var get User
+		err := rows.Scan(&get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.CreatedAt, &get.TimeZone, &get.Country, &get.IsActive)
+		if err != nil {
+			return sliceUser, err
+		}
+		sliceUser = append(sliceUser, get)
+	}
+	if err = rows.Err(); err != nil {
+		return sliceUser, err
+	}
+	return sliceUser, nil
 
 }

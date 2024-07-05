@@ -17,8 +17,6 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	)
 	// inputvalidator.IsMethodValid(w, r, "POST")
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	inputvalidator.IsMethodValid(w, r, "POST")
 
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -80,11 +78,38 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	user.CreatedAt = inputvalidator.Timenow(user.CreatedAt.Local().Location())
 	user.IsActive = true
 	response := model.InsertUser(user)
-	w.Write([]byte(response + " Inserted"))
-	fmt.Println("\n", response, "inserted successfully !")
-	// fmt.Fprint(w, `New Id inserted`, "\t", response)
+	Message["message"] = "Inserted Successfully"
+	fmt.Println(Message)
+	output, err := json.Marshal(Message)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+	} else {
+		w.Write(output)
+	}
+
+	fmt.Println("\n", response, "inserted Successfully !")
+
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
+	var user model.User
+	w.Header().Set("content-type", "application/json")
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		log.Print(err)
+	}
+	res, err := model.ReturnUser(user)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Print(res)
+	}
 
+	fmt.Fprintf(w, `Data Retrieved Successfully.`)
+	// resp, err := http.Get("http://localhost/getuser")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Println(resp)
+	// fmt.Println("dslfjdslkfjds")
 }
