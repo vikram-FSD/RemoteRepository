@@ -6,16 +6,22 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/atomedgesoft/scheduler/inputvalidator"
-	"github.com/atomedgesoft/scheduler/model"
+	"github.com/atomedgesoft/calendariq/inputvalidator"
+	"github.com/atomedgesoft/calendariq/model"
 )
 
 func InsertUser(w http.ResponseWriter, r *http.Request) {
-	var user model.User
+	var (
+		user    model.User
+		Message = make(map[string]string)
+	)
 	// inputvalidator.IsMethodValid(w, r, "POST")
+	
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
-	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		
 	inputvalidator.IsMethodValid(w, r, "POST")
 
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -77,11 +83,43 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	user.CreatedAt = inputvalidator.Timenow(user.CreatedAt.Local().Location())
 	user.IsActive = true
 	response := model.InsertUser(user)
-	fmt.Println("\n", response, "inserted successfully !")
-	fmt.Fprint(w, `New Id inserted`, "\t", response)
+	Message["message"] = "Inserted Successfully"
+	fmt.Println(Message)
+	output, err := json.Marshal(Message)
+	if err != nil {
+		w.Write([]byte(err.Error()))
+	} else {
+		w.Write(output)
+	}
+
+	fmt.Println("\n", response, "inserted Successfully !")
 
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
+	var user model.User
+	w.Header().Set("content-type", "application/json")
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		log.Print(err)
+	}
+	res, err := model.ReturnUser(user)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		jData, err := json.Marshal(res)
+		if err != nil {
+			fmt.Println(err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
+	}
 
+	fmt.Fprintf(w, `Data Retrieved Successfully.`)
+	// resp, err := http.Get("http://localhost/getuser")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Println(resp)
+	// fmt.Println("dslfjdslkfjds")
 }

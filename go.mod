@@ -1,4 +1,4 @@
-module github.com/atomedgesoft/scheduler
+module github.com/atomedgesoft/calendariq
 
 go 1.22.4
 
@@ -11,9 +11,10 @@ require (
 )
 
 require (
-	github.com/gorilla/mux v1.8.1 // indirect
+	github.com/gorilla/mux v1.8.1
 	github.com/hbollon/go-edlib v1.6.0 // indirect
-	github.com/lib/pq v1.10.9 // indirect
+	github.com/lib/pq v1.10.9
+	github.com/rs/cors v1.11.0
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
