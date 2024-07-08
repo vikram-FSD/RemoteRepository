@@ -16,7 +16,12 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		Message = make(map[string]string)
 	)
 	// inputvalidator.IsMethodValid(w, r, "POST")
+	
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		
 	inputvalidator.IsMethodValid(w, r, "POST")
 
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -102,7 +107,12 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		fmt.Print(res)
+		jData, err := json.Marshal(res)
+		if err != nil {
+			fmt.Println(err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jData)
 	}
 
 	fmt.Fprintf(w, `Data Retrieved Successfully.`)
