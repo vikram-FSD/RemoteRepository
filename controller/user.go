@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/atomedgesoft/calendariq/config"
 	"github.com/atomedgesoft/calendariq/inputvalidator"
 	"github.com/atomedgesoft/calendariq/model"
 )
@@ -15,20 +16,15 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		user    model.User
 		Message = make(map[string]string)
 	)
-	// inputvalidator.IsMethodValid(w, r, "POST")
-	
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		
+
 	inputvalidator.IsMethodValid(w, r, "POST")
 
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		log.Print(err)
 	}
-	//validating input if it is empty
+	//validating Empty Input
 	if user.FirstName == "" {
 		http.Error(w, "FirstName is required", http.StatusBadRequest)
 		return
@@ -79,21 +75,27 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "FirstName invalid", http.StatusBadRequest)
 		return
 	}
-
-	user.CreatedAt = inputvalidator.Timenow(user.CreatedAt.Local().Location())
-	user.IsActive = true
-	response := model.InsertUser(user)
-	Message["message"] = "Inserted Successfully"
-	fmt.Println(Message)
-	output, err := json.Marshal(Message)
+	createdTimeAndDate := config.CurrentDateTime(user.TimeZone)
+	user.CreatedAt = createdTimeAndDate
 	if err != nil {
-		w.Write([]byte(err.Error()))
+		log.Fatal(err)
 	} else {
-		w.Write(output)
+		fmt.Println(user.CreatedAt)
 	}
-
-	fmt.Println("\n", response, "inserted Successfully !")
-
+	user.IsActive = true
+	response, err := model.InsertUser(user)
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		Message["message"] = "New User Inserted: " + response
+		fmt.Println(Message)
+		output, err := json.Marshal(Message)
+		if err != nil {
+			w.Write([]byte(err.Error()))
+		} else {
+			w.Write(output)
+		}
+	}
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
@@ -107,19 +109,8 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		jData, err := json.Marshal(res)
-		if err != nil {
-			fmt.Println(err)
-		}
-		w.Header().Set("Content-Type", "application/json")
+		jData, _ := json.Marshal(res)
 		w.Write(jData)
 	}
-
 	fmt.Fprintf(w, `Data Retrieved Successfully.`)
-	// resp, err := http.Get("http://localhost/getuser")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(resp)
-	// fmt.Println("dslfjdslkfjds")
 }

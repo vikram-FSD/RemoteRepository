@@ -3,6 +3,7 @@ package config
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -28,4 +29,11 @@ func ConnectDB() (*sql.DB, error) {
 
 	fmt.Println("Successfully connected to database")
 	return db, nil
+}
+func CurrentDateTime(Locate string) string {
+
+	Timenow, _ := time.LoadLocation(Locate)
+	DefaultDate := time.Now().In(Timenow)
+	return DefaultDate.Format("2006-01-02 15:04:05 MST")
+
 }

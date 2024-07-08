@@ -2,24 +2,23 @@ package model
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/atomedgesoft/calendariq/config"
 )
 
 type User struct {
-	Id            string    `json:id`
-	FirstName     string    `json:firstname`
-	LastName      string    `json:lastname`
-	EmailAddress  string    `json:emailaddress`
-	Signinthrough string    `json:signinthrough`
-	CreatedAt     time.Time `json:createdate`
-	TimeZone      string    `json:timezone`
-	IsActive      bool      `json:isactive`
-	Country       string    `json:country`
+	Id            string `json:id`
+	FirstName     string `json:firstname`
+	LastName      string `json:lastname`
+	EmailAddress  string `json:emailaddress`
+	Signinthrough string `json:signinthrough`
+	CreatedAt     string `json:createdate`
+	TimeZone      string `json:timezone`
+	IsActive      bool   `json:isactive`
+	Country       string `json:country`
 }
 
-func InsertUser(user User) string {
+func InsertUser(user User) (string, error) {
 	db, _ := config.ConnectDB()
 	defer db.Close()
 
@@ -27,9 +26,9 @@ func InsertUser(user User) string {
 
 	err := db.QueryRow(sqlStmt, user.Id, user.FirstName, user.LastName, user.EmailAddress, user.Signinthrough, user.CreatedAt, user.TimeZone, user.IsActive, user.Country).Scan(&user.Id)
 	if err != nil {
-		fmt.Println(err)
+		return "", err
 	}
-	return user.Id
+	return user.FirstName, nil
 }
 
 // getting user from the db
@@ -45,19 +44,19 @@ func ReturnUser(user User) ([]User, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	var sliceUser []User
+	var Usercontainer []User
 	//Loop through rows using scan to assign column data to the struct fields
 	for rows.Next() {
 		var get User
 		err := rows.Scan(&get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.CreatedAt, &get.TimeZone, &get.Country, &get.IsActive)
 		if err != nil {
-			return sliceUser, err
+			return Usercontainer, err
 		}
-		sliceUser = append(sliceUser, get)
+		Usercontainer = append(Usercontainer, get)
 	}
 	if err = rows.Err(); err != nil {
-		return sliceUser, err
+		return Usercontainer, err
 	}
-	return sliceUser, nil
+	return Usercontainer, nil
 
 }
