@@ -83,19 +83,29 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(user.CreatedAt)
 	}
 	user.IsActive = true
-	response, err := model.InsertUser(user)
+	//To check if the data is already exist in DB with emailAddress
+	existEmailId, err := model.IsEmailExists(user)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+	}
+	if user.EmailAddress == existEmailId {
+		http.Error(w, "Email ID  already Exist !", http.StatusBadRequest)
 	} else {
-		Message["message"] = "New User Inserted: " + response
-		fmt.Println(Message)
-		output, err := json.Marshal(Message)
+		response, err := model.InsertUser(user)
 		if err != nil {
-			w.Write([]byte(err.Error()))
+			log.Fatal(err)
 		} else {
-			w.Write(output)
+			Message["message"] = "New User Inserted: " + response
+			fmt.Println(Message)
+			output, err := json.Marshal(Message)
+			if err != nil {
+				w.Write([]byte(err.Error()))
+			} else {
+				w.Write(output)
+			}
 		}
 	}
+
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
@@ -111,6 +121,8 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	} else {
 		jData, _ := json.Marshal(res)
 		w.Write(jData)
+		fmt.Println(res)
 	}
 	fmt.Fprintf(w, `Data Retrieved Successfully.`)
+
 }
