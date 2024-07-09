@@ -84,12 +84,12 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	}
 	user.IsActive = true
 	//To check if the data is already exist in DB with emailAddress
-	existEmailId, err := model.IsEmailExists(user)
+	email, id, fname, err := model.IsEmailExists(user)
 	if err != nil {
 		log.Println(err)
 	}
-	if user.EmailAddress == existEmailId {
-		http.Error(w, "Email ID  already Exist !", http.StatusBadRequest)
+	if user.EmailAddress == email || user.Id == id || user.FirstName == fname {
+		http.Error(w, "User Data already Exist !", http.StatusBadRequest)
 	} else {
 		response, err := model.InsertUser(user)
 		if err != nil {
@@ -105,7 +105,6 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
@@ -120,9 +119,8 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	} else {
 		jData, _ := json.Marshal(res)
+		fmt.Fprintf(w, `Data Retrieved Successfully.`)
 		w.Write(jData)
-		fmt.Println(res)
 	}
-	fmt.Fprintf(w, `Data Retrieved Successfully.`)
 
 }
