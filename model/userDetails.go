@@ -28,11 +28,11 @@ func InsertUser(user User) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return user.FirstName, nil
+	return user.Id, nil
 }
 
 // getting user from the db
-func ReturnUser(user User) ([]User, error) {
+func GetUser(user User) ([]User, error) {
 	db, err := config.ConnectDB()
 	if err != nil {
 		fmt.Println(err)
@@ -45,7 +45,6 @@ func ReturnUser(user User) ([]User, error) {
 	}
 	defer rows.Close()
 	var Usercontainer []User
-
 	for rows.Next() {
 		var get User
 		err := rows.Scan(&get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.TimeZone, &get.Country, &get.IsActive, &get.CreatedAt)
@@ -61,7 +60,7 @@ func ReturnUser(user User) ([]User, error) {
 }
 
 // Checking if the emailID is already exist or not
-func IsEmailExists(user User) (email string, id string, firstname string, error error) {
+func IsUserExists(user User) (email string, id string, firstname string, error error) {
 	db, err := config.ConnectDB()
 	if err != nil {
 		fmt.Println(err)
@@ -72,9 +71,9 @@ func IsEmailExists(user User) (email string, id string, firstname string, error 
 		return "", "", "", err
 	}
 	defer rows.Close()
+	db.Close()
 	var get User
 	for rows.Next() {
-
 		err := rows.Scan(&get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.TimeZone, &get.Country, &get.IsActive, &get.CreatedAt)
 		if err != nil {
 			return "", "", "", err

@@ -17,96 +17,71 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		Message = make(map[string]string)
 	)
 	w.Header().Set("Content-Type", "application/json")
-
 	inputvalidator.IsMethodValid(w, r, "POST")
-
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		log.Print(err)
-	}
-	//validating Empty Input
-	if user.FirstName == "" {
-		http.Error(w, "FirstName is required", http.StatusBadRequest)
 		return
 	}
-	if user.LastName == "" {
-		http.Error(w, "LastName is required", http.StatusBadRequest)
+	//validating Inputs using IsStringValid Function
+	isValid, _ := inputvalidator.IsStringValid("en", user.FirstName, 50, true, "firstname")
+	if isValid != "valid" {
+		http.Error(w, isValid, http.StatusBadRequest)
 		return
 	}
-	if user.EmailAddress == "" {
-		http.Error(w, "EmailId is required", http.StatusBadRequest)
+	isValid, _ = inputvalidator.IsStringValid("en", user.LastName, 50, true, "lastname")
+	if isValid != "valid" {
+		http.Error(w, isValid, http.StatusBadRequest)
 		return
 	}
-	if user.Signinthrough == "" {
-		http.Error(w, "SignInThrough is required", http.StatusBadRequest)
+
+	isValid, _ = inputvalidator.IsStringValid("en", user.Signinthrough, 50, true, "signinthrough")
+	if isValid != "valid" {
+		http.Error(w, isValid, http.StatusBadRequest)
 		return
 	}
-	if user.TimeZone == "" {
-		http.Error(w, "Timezone is required", http.StatusBadRequest)
+	isValid, _ = inputvalidator.IsStringValid("en", user.TimeZone, 50, true, "Timezone")
+	if isValid != "valid" {
+		http.Error(w, isValid, http.StatusBadRequest)
 		return
 	}
-	//Validating emailAddress and send to model to store with DB
-	email := user.EmailAddress
-	isEmailValid := inputvalidator.IsEmailAddressValid("English", email, 100)
-	if isEmailValid == "valid" {
-		user.EmailAddress = email
-	} else {
-		http.Error(w, "Email ID is invalid", http.StatusBadRequest)
-		log.Fatal("Email ID is Invalid Please enter the valid one!")
+	isEmailValid := inputvalidator.IsEmailAddressValid("English", user.EmailAddress, 100)
+	if isEmailValid != "valid" {
+		http.Error(w, isEmailValid, http.StatusBadRequest)
+		return
 	}
 	//Autogenerating Id with length of 12 character & only contains letters & numbers and send to model to store with DB.
 	user.Id = inputvalidator.GenerateRandomKey("generateID12345")
 	//validating country string with space
-	Country := user.Country
-	res, err := inputvalidator.IsStringWitSpaceValid("EN", Country, 50, false, "country")
-	if res == "valid" {
-		user.Country = Country
-	} else {
-		log.Fatal(err)
-	}
-	//Validating the firstname
-	fName := user.FirstName
-	str, _ := inputvalidator.IsFirstNameValid("en", fName, 60, false, "firstname")
-	if str == "valid" {
-
-		user.FirstName = fName
-
-	} else {
-		http.Error(w, "FirstName invalid", http.StatusBadRequest)
+	res, _ := inputvalidator.IsStringWitSpaceValid("EN", user.Country, 50, false, "country")
+	if res != "valid" {
+		http.Error(w, res, http.StatusBadRequest)
 		return
 	}
 	createdTimeAndDate := config.CurrentDateTime(user.TimeZone)
 	user.CreatedAt = createdTimeAndDate
-	if err != nil {
-		log.Fatal(err)
-	} else {
-		fmt.Println(user.CreatedAt)
-	}
 	user.IsActive = true
-	//To check if the data is already exist in DB with emailAddress
-	email, id, fname, err := model.IsEmailExists(user)
+	//To check if the data is already exist in DB with emailAddress, Id, and firstname
+	email, id, fname, err := model.IsUserExists(user)
 	if err != nil {
 		log.Println(err)
 	}
 	if user.EmailAddress == email || user.Id == id || user.FirstName == fname {
 		http.Error(w, "User Data already Exist !", http.StatusBadRequest)
+		return
 	} else {
 		response, err := model.InsertUser(user)
 		if err != nil {
-			log.Fatal(err)
-		} else {
-			Message["message"] = "New User Inserted: " + response
-			fmt.Println(Message)
-			output, err := json.Marshal(Message)
-			if err != nil {
-				w.Write([]byte(err.Error()))
-			} else {
-				w.Write(output)
-			}
+			log.Print(err)
+			return
 		}
+		Message["message"] = "New User Inserted: " + response
+		output, err := json.Marshal(Message)
+		if err != nil {
+			w.Write([]byte(err.Error()))
+		}
+		w.Write(output)
 	}
 }
-
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	w.Header().Set("content-type", "application/json")
@@ -114,13 +89,11 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Print(err)
 	}
-	res, err := model.ReturnUser(user)
+	res, err := model.GetUser(user)
 	if err != nil {
-		fmt.Println(err)
-	} else {
-		jData, _ := json.Marshal(res)
-		fmt.Fprintf(w, `Data Retrieved Successfully.`)
-		w.Write(jData)
+		return
 	}
-
+	jData, _ := json.Marshal(res)
+	fmt.Fprintf(w, `Data Retrieved Successfully.`)
+	w.Write(jData)
 }
