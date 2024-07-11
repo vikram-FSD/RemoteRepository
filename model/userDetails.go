@@ -60,7 +60,7 @@ func GetUser(user User) ([]User, error) {
 }
 
 // Checking if the emailID is already exist or not
-func IsUserExists(user User) (email string, error error) {
+func IsEmailExists(user User) (email string, error error) {
 	db, err := config.ConnectDB()
 	if err != nil {
 		fmt.Println(err)

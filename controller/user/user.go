@@ -11,6 +11,13 @@ import (
 	"github.com/atomedgesoft/calendariq/model"
 )
 
+type Result struct {
+	Message string `json:message`
+}
+
+var Output []byte
+
+// POST USER
 func InsertUser(w http.ResponseWriter, r *http.Request) {
 	var (
 		user model.User
@@ -31,60 +38,47 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	user.Id = inputvalidator.GenerateRandomKey(config.Charset)
 	user.CreatedAt = config.CurrentDateTime(user.TimeZone)
 	user.IsActive = true
-	results, err := model.InsertUser(user)
-	isValid, _ = inputvalidator.IsStringValid(config.Lang, user.LastName, 50, true, "lastname")
-	if isValid != "valid" {
-		http.Error(w, isValid, http.StatusBadRequest)
-		return
-	}
-
-	isValid, _ = inputvalidator.IsStringValid(config.Lang, user.Signinthrough, 50, true, "signinthrough")
-	if isValid != "valid" {
-		http.Error(w, isValid, http.StatusBadRequest)
-		return
-	}
-	if isValid != "valid" {
-		http.Error(w, isValid, http.StatusBadRequest)
-		return
-	}
-	isEmailValid := inputvalidator.IsEmailAddressValid(config.Lang, user.EmailAddress, 100)
-	if isEmailValid != "valid" {
-		http.Error(w, isEmailValid, http.StatusBadRequest)
-		return
-	}
-
-	const Charset = "abcdefghijklmnopqrstuvwxyz0123456789"
-	user.Id = inputvalidator.GenerateRandomKey(Charset)
-	//validating country string with space
-	res, _ := inputvalidator.IsStringWitSpaceValid(config.Lang, user.Country, 50, false, "country")
-	if res != "valid" {
-		http.Error(w, res, http.StatusBadRequest)
-		return
-	}
 
 	//To check if the data is already exist in DB with emailAddress
-	email, err := model.IsUserExists(user)
+	email, err := model.IsEmailExists(user)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 	if user.EmailAddress == email {
-		http.Error(w, "User Data already Exist !", http.StatusBadRequest)
+		http.Error(w, "Email-ID already Exist !", http.StatusBadRequest)
 		return
 	} else {
-		response, err := model.InsertUser(user)
+
+		results, err := model.InsertUser(user)
 		if err != nil {
-			log.Print(err)
-			return
+			inputvalidator.ErrorHandler(err, 500, w)
 		}
-		Message["message"] = "New User Inserted: " + response
-		output, err := json.Marshal(Message)
-		if err != nil {
-			w.Write([]byte(err.Error()))
+		if len(results) > 0 {
+			out := Result{inputvalidator.Message(config.Lang, "insert-success")}
+			Output, _ = json.Marshal(out)
+			fmt.Println(out)
 		}
-		w.Write(output)
+		w.Write(Output)
+
+		////////////////////////////////
+		// 	response, err := model.InsertUser(user)
+		// 	if err != nil {
+		// 		log.Print(err)
+		// 		return
+		// 	}
+		// 	Message := make(map[string]string)
+		// 	Message["message"] = "New User Inserted: " + response
+		// 	output, err := json.Marshal(Message)
+		// 	if err != nil {
+		// 		w.Write([]byte(err.Error()))
+		// 	}
+		// 	w.Write(output)
+		// }
 	}
 }
 
+// GET USER
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	w.Header().Set("content-type", "application/json")
