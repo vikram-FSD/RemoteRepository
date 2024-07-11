@@ -40,6 +40,7 @@ func IsStringValid(Lang string, str string, maxChar int, Isnullable bool, fieldn
 
 	if !Isnullable && len(str) == 0 {
 		Output = fieldname + " " + message[Lang]["must-be-valid"]
+		return Output, nil
 	}
 
 	pattern := `^[A-Za-z0-9]+$`

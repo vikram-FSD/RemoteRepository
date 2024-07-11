@@ -60,7 +60,7 @@ func GetUser(user User) ([]User, error) {
 }
 
 // Checking if the emailID is already exist or not
-func IsUserExists(user User) (email string, id string, firstname string, error error) {
+func IsUserExists(user User) (email string, error error) {
 	db, err := config.ConnectDB()
 	if err != nil {
 		fmt.Println(err)
@@ -68,7 +68,7 @@ func IsUserExists(user User) (email string, id string, firstname string, error e
 	sqlStmt := `select * from users`
 	rows, err := db.Query(sqlStmt)
 	if err != nil {
-		return "", "", "", err
+		return "", err
 	}
 	defer rows.Close()
 	db.Close()
@@ -76,11 +76,11 @@ func IsUserExists(user User) (email string, id string, firstname string, error e
 	for rows.Next() {
 		err := rows.Scan(&get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.TimeZone, &get.Country, &get.IsActive, &get.CreatedAt)
 		if err != nil {
-			return "", "", "", err
+			return "", err
 		}
 	}
 	if err = rows.Err(); err != nil {
-		return "", "", "", err
+		return "", err
 	}
-	return get.EmailAddress, get.Id, get.FirstName, nil
+	return get.EmailAddress, nil
 }

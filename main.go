@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/atomedgesoft/calendariq/config"
-	user "github.com/atomedgesoft/calendariq/controller"
+	user "github.com/atomedgesoft/calendariq/controller/user"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 )

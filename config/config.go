@@ -8,6 +8,15 @@ import (
 	_ "github.com/lib/pq"
 )
 
+var (
+	Active     = true
+	Lang       = "en"
+	Location   = "Asia/Calcutta"
+	Timenow, _ = time.LoadLocation(Location)
+)
+
+const Charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+
 func ConnectDB() (*sql.DB, error) {
 	const (
 		host     = "localhost"

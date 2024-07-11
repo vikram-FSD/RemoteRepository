@@ -13,8 +13,7 @@ import (
 
 func InsertUser(w http.ResponseWriter, r *http.Request) {
 	var (
-		user    model.User
-		Message = make(map[string]string)
+		user model.User
 	)
 	w.Header().Set("Content-Type", "application/json")
 	inputvalidator.IsMethodValid(w, r, "POST")
@@ -22,50 +21,53 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	//validating Inputs using IsStringValid Function
-	isValid, _ := inputvalidator.IsStringValid("en", user.FirstName, 50, true, "firstname")
-	if isValid != "valid" {
-		http.Error(w, isValid, http.StatusBadRequest)
+
+	// validating Inputs
+	response := InputValidation(user)
+	if response["output"] != "valid" {
+		inputvalidator.WriteJson(response, w)
 		return
 	}
-	isValid, _ = inputvalidator.IsStringValid("en", user.LastName, 50, true, "lastname")
+	user.Id = inputvalidator.GenerateRandomKey(config.Charset)
+	user.CreatedAt = config.CurrentDateTime(user.TimeZone)
+	user.IsActive = true
+	results, err := model.InsertUser(user)
+	isValid, _ = inputvalidator.IsStringValid(config.Lang, user.LastName, 50, true, "lastname")
 	if isValid != "valid" {
 		http.Error(w, isValid, http.StatusBadRequest)
 		return
 	}
 
-	isValid, _ = inputvalidator.IsStringValid("en", user.Signinthrough, 50, true, "signinthrough")
+	isValid, _ = inputvalidator.IsStringValid(config.Lang, user.Signinthrough, 50, true, "signinthrough")
 	if isValid != "valid" {
 		http.Error(w, isValid, http.StatusBadRequest)
 		return
 	}
-	isValid, _ = inputvalidator.IsStringValid("en", user.TimeZone, 50, true, "Timezone")
 	if isValid != "valid" {
 		http.Error(w, isValid, http.StatusBadRequest)
 		return
 	}
-	isEmailValid := inputvalidator.IsEmailAddressValid("English", user.EmailAddress, 100)
+	isEmailValid := inputvalidator.IsEmailAddressValid(config.Lang, user.EmailAddress, 100)
 	if isEmailValid != "valid" {
 		http.Error(w, isEmailValid, http.StatusBadRequest)
 		return
 	}
-	//Autogenerating Id with length of 12 character & only contains letters & numbers and send to model to store with DB.
-	user.Id = inputvalidator.GenerateRandomKey("generateID12345")
+
+	const Charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+	user.Id = inputvalidator.GenerateRandomKey(Charset)
 	//validating country string with space
-	res, _ := inputvalidator.IsStringWitSpaceValid("EN", user.Country, 50, false, "country")
+	res, _ := inputvalidator.IsStringWitSpaceValid(config.Lang, user.Country, 50, false, "country")
 	if res != "valid" {
 		http.Error(w, res, http.StatusBadRequest)
 		return
 	}
-	createdTimeAndDate := config.CurrentDateTime(user.TimeZone)
-	user.CreatedAt = createdTimeAndDate
-	user.IsActive = true
-	//To check if the data is already exist in DB with emailAddress, Id, and firstname
-	email, id, fname, err := model.IsUserExists(user)
+
+	//To check if the data is already exist in DB with emailAddress
+	email, err := model.IsUserExists(user)
 	if err != nil {
 		log.Println(err)
 	}
-	if user.EmailAddress == email || user.Id == id || user.FirstName == fname {
+	if user.EmailAddress == email {
 		http.Error(w, "User Data already Exist !", http.StatusBadRequest)
 		return
 	} else {
@@ -82,6 +84,7 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		w.Write(output)
 	}
 }
+
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	w.Header().Set("content-type", "application/json")
