@@ -12,7 +12,7 @@ import (
 )
 
 type Result struct {
-	Message string `json:message`
+	Result string `json:result`
 }
 
 var Output []byte
@@ -28,19 +28,21 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-
 	// validating Inputs
-	response := InputValidation(user)
+	response, errs := InputValidation(user)
 	if response["output"] != "valid" {
 		inputvalidator.WriteJson(response, w)
+		return
+	}
+	if errs["output"] != "valid" {
+		inputvalidator.WriteJson(errs, w)
 		return
 	}
 	user.Id = inputvalidator.GenerateRandomKey(config.Charset)
 	user.CreatedAt = config.CurrentDateTime(user.TimeZone)
 	user.IsActive = true
-
 	//To check if the data is already exist in DB with emailAddress
-	email, err := model.IsEmailExists(user)
+	email, err := IsEmailExists(user)
 	if err != nil {
 		log.Println(err)
 		return
@@ -49,32 +51,15 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Email-ID already Exist !", http.StatusBadRequest)
 		return
 	} else {
-
 		results, err := model.InsertUser(user)
 		if err != nil {
 			inputvalidator.ErrorHandler(err, 500, w)
 		}
 		if len(results) > 0 {
-			out := Result{inputvalidator.Message(config.Lang, "insert-success")}
+			out := Result{"New user added: " + user.Id}
 			Output, _ = json.Marshal(out)
-			fmt.Println(out)
 		}
 		w.Write(Output)
-
-		////////////////////////////////
-		// 	response, err := model.InsertUser(user)
-		// 	if err != nil {
-		// 		log.Print(err)
-		// 		return
-		// 	}
-		// 	Message := make(map[string]string)
-		// 	Message["message"] = "New User Inserted: " + response
-		// 	output, err := json.Marshal(Message)
-		// 	if err != nil {
-		// 		w.Write([]byte(err.Error()))
-		// 	}
-		// 	w.Write(output)
-		// }
 	}
 }
 
@@ -93,4 +78,30 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	jData, _ := json.Marshal(res)
 	fmt.Fprintf(w, `Data Retrieved Successfully.`)
 	w.Write(jData)
+}
+
+// Checking if the emailID is already exist or not
+func IsEmailExists(user model.User) (email string, error error) {
+	db, err := config.ConnectDB()
+	if err != nil {
+		fmt.Println(err)
+	}
+	sqlStmt := `select * from users`
+	rows, err := db.Query(sqlStmt)
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+	db.Close()
+	var get model.User
+	for rows.Next() {
+		err := rows.Scan(&get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.TimeZone, &get.Country, &get.IsActive, &get.CreatedAt)
+		if err != nil {
+			return "", err
+		}
+	}
+	if err = rows.Err(); err != nil {
+		return "", err
+	}
+	return get.EmailAddress, nil
 }

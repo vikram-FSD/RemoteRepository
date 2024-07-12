@@ -18,6 +18,7 @@ type User struct {
 	Country       string `json:country`
 }
 
+// POST API for USER
 func InsertUser(user User) (string, error) {
 	db, _ := config.ConnectDB()
 	defer db.Close()
@@ -31,7 +32,7 @@ func InsertUser(user User) (string, error) {
 	return user.Id, nil
 }
 
-// getting user from the db
+// GET API for USER
 func GetUser(user User) ([]User, error) {
 	db, err := config.ConnectDB()
 	if err != nil {
@@ -57,30 +58,4 @@ func GetUser(user User) ([]User, error) {
 		return Usercontainer, err
 	}
 	return Usercontainer, nil
-}
-
-// Checking if the emailID is already exist or not
-func IsEmailExists(user User) (email string, error error) {
-	db, err := config.ConnectDB()
-	if err != nil {
-		fmt.Println(err)
-	}
-	sqlStmt := `select * from users`
-	rows, err := db.Query(sqlStmt)
-	if err != nil {
-		return "", err
-	}
-	defer rows.Close()
-	db.Close()
-	var get User
-	for rows.Next() {
-		err := rows.Scan(&get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.TimeZone, &get.Country, &get.IsActive, &get.CreatedAt)
-		if err != nil {
-			return "", err
-		}
-	}
-	if err = rows.Err(); err != nil {
-		return "", err
-	}
-	return get.EmailAddress, nil
 }
