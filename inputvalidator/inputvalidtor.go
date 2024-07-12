@@ -444,3 +444,25 @@ func IsFirstNameValid(Lang string, str string, maxChar int, Isnullable bool, fie
 func IsJSONValid(permission map[string]int) {
 
 }
+func IsTimeZoneValid(Lang string, str string, maxChar int, Isnullable bool, fieldname string) (string, error) {
+
+	var Output string
+
+	if !Isnullable && len(str) == 0 {
+		Output = fieldname + " " + message[Lang]["must-be-valid"]
+	}
+
+	pattern := `^[A-Za-z0-9/ ]+$`
+	matched, err := regexp.MatchString(pattern, str)
+
+	CheckErrWithReturn(err)
+
+	if !matched {
+		Output = message[Lang]["invalid-char-found"]
+	} else if len(str) > maxChar {
+		Output = message[Lang]["len-is-greater-than-expected"]
+	} else {
+		Output = "valid"
+	}
+	return Output, nil
+}

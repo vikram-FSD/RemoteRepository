@@ -18,7 +18,7 @@ func InputValidation(user model.User) (map[string]string, map[string]string) {
 	response["lastname"], errors["lastname"] = inputvalidator.IsStringValid(config.Lang, user.LastName, 50, true, "lastname")
 	response["email"] = inputvalidator.IsEmailAddressValid(config.Lang, user.EmailAddress, 50)
 	response["signinthrough"], errors["signinthrough"] = inputvalidator.IsStringValid(config.Lang, user.Signinthrough, 50, false, "signinthrough")
-	response["timezone"], errors["timezone"] = inputvalidator.IsStringValid(config.Lang, user.TimeZone, 50, true, "Timezone")
+	response["timezone"], errors["timezone"] = inputvalidator.IsTimeZoneValid(config.Lang, user.TimeZone, 50, true, "Timezone")
 	response["country"], errors["country"] = inputvalidator.IsStringWitSpaceValid(config.Lang, user.Country, 50, true, "country")
 	message_array = make(map[string]string)
 	//Loop for response
