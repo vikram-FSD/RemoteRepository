@@ -26,6 +26,7 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	inputvalidator.IsMethodValid(w, r, "POST")
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 	// validating Inputs
