@@ -34,7 +34,6 @@ func ConnectDB() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("Successfully connected to database")
 	return db, nil
 }
 func CurrentDateTime(Locate string) string {

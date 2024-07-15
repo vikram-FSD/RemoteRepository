@@ -452,7 +452,7 @@ func IsTimeZoneValid(Lang string, str string, maxChar int, Isnullable bool, fiel
 		Output = fieldname + " " + message[Lang]["must-be-valid"]
 	}
 
-	pattern := `^[A-Za-z0-9/ ]+$`
+	pattern := `^[A-Za-z0-9/]+$`
 	matched, err := regexp.MatchString(pattern, str)
 
 	CheckErrWithReturn(err)

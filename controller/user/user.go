@@ -1,8 +1,8 @@
 package user
 
 import (
+	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -12,55 +12,58 @@ import (
 )
 
 type Result struct {
-	Result string `json:result`
+	Result string `json:"result"`
 }
-
-var Output []byte
 
 // POST USER
 func InsertUser(w http.ResponseWriter, r *http.Request) {
-	var (
-		user model.User
-	)
+	var user model.User
 	w.Header().Set("Content-Type", "application/json")
 	inputvalidator.IsMethodValid(w, r, "POST")
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error decoding user data:", err)
+		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
-	// validating Inputs
+	// Validating Inputs
 	response, errs := InputValidation(user)
 	if response["output"] != "valid" {
 		inputvalidator.WriteJson(response, w)
 		return
 	}
-	if errs["output"] != "valid" {
+	if len(errs) > 0 {
 		inputvalidator.WriteJson(errs, w)
 		return
 	}
 	user.Id = inputvalidator.GenerateRandomKey(config.Charset)
 	user.CreatedAt = config.CurrentDateTime(user.TimeZone)
 	user.IsActive = true
-	//To check if the data is already exist in DB with emailAddress
-	email, err := IsEmailExists(user)
+
+	// Check if the email is already in use
+	exist, err := IsEmailExists(user)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error checking email existence:", err)
+		inputvalidator.ErrorHandler(err, http.StatusInternalServerError, w)
 		return
 	}
-	if user.EmailAddress == email {
-		http.Error(w, "Email-ID already Exist !", http.StatusBadRequest)
+	if exist {
+		http.Error(w, "Email-ID already exists!", http.StatusBadRequest)
 		return
-	} else {
-		results, err := model.InsertUser(user)
+	}
+	if !exist {
+		resultID, err := model.InsertUser(user)
 		if err != nil {
-			inputvalidator.ErrorHandler(err, 500, w)
+			log.Println("Error inserting user:", err)
+			inputvalidator.ErrorHandler(err, http.StatusInternalServerError, w)
+			return
 		}
-		if len(results) > 0 {
-			out := Result{"New user added: " + user.Id}
-			Output, _ = json.Marshal(out)
+		if resultID != "" {
+			out := Result{Result: "New user added: " + user.Id}
+			inputvalidator.WriteJson(out, w)
+		} else {
+			http.Error(w, "User could not be added.", http.StatusInternalServerError)
 		}
-		w.Write(Output)
 	}
 }
 
@@ -70,39 +73,33 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("content-type", "application/json")
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		log.Print(err)
+		inputvalidator.ErrorHandler(err, 500, w)
+		return
 	}
 	res, err := model.GetUser(user)
 	if err != nil {
+		inputvalidator.ErrorHandler(err, http.StatusInternalServerError, w)
 		return
 	}
 	jData, _ := json.Marshal(res)
-	fmt.Fprintf(w, `Data Retrieved Successfully.`)
 	w.Write(jData)
 }
 
 // Checking if the emailID is already exist or not
-func IsEmailExists(user model.User) (email string, error error) {
+func IsEmailExists(user model.User) (bool, error) {
 	db, err := config.ConnectDB()
 	if err != nil {
-		fmt.Println(err)
+		return false, err
 	}
-	sqlStmt := `select * from users`
-	rows, err := db.Query(sqlStmt)
+	defer db.Close()
+	var emailaddress string
+	sqlStmt := `select emailaddress from users where emailaddress=$1`
+	err = db.QueryRow(sqlStmt, user.EmailAddress).Scan(&emailaddress)
 	if err != nil {
-		return "", err
-	}
-	defer rows.Close()
-	db.Close()
-	var get model.User
-	for rows.Next() {
-		err := rows.Scan(&get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.TimeZone, &get.Country, &get.IsActive, &get.CreatedAt)
-		if err != nil {
-			return "", err
+		if err == sql.ErrNoRows {
+			return false, nil
 		}
+		return false, nil
 	}
-	if err = rows.Err(); err != nil {
-		return "", err
-	}
-	return get.EmailAddress, nil
+	return true, nil
 }
