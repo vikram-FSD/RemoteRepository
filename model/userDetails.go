@@ -44,11 +44,10 @@ func GetUser(user User) ([]User, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 	var Usercontainer []User
 	for rows.Next() {
 		var get User
-		err := rows.Scan(&get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.CreatedAt, &get.TimeZone, &get.Country, &get.IsActive)
+		err := rows.Scan(&get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.TimeZone, &get.Country, &get.IsActive, &get.CreatedAt)
 		if err != nil {
 			return Usercontainer, err
 		}
@@ -57,5 +56,6 @@ func GetUser(user User) ([]User, error) {
 	if err = rows.Err(); err != nil {
 		return Usercontainer, err
 	}
+	defer rows.Close()
 	return Usercontainer, nil
 }

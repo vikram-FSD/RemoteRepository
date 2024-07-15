@@ -70,19 +70,12 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 // GET USER
 func GetUser(w http.ResponseWriter, r *http.Request) {
 	var user model.User
-	w.Header().Set("content-type", "application/json")
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		inputvalidator.ErrorHandler(err, 500, w)
-		return
-	}
 	res, err := model.GetUser(user)
 	if err != nil {
-		inputvalidator.ErrorHandler(err, http.StatusInternalServerError, w)
+		http.Error(w, "User not found", http.StatusNotFound)
 		return
 	}
-	jData, _ := json.Marshal(res)
-	w.Write(jData)
+	inputvalidator.WriteJson(res, w)
 }
 
 // Checking if the emailID is already exist or not

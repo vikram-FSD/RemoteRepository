@@ -28,7 +28,6 @@ func ErrorHandler(err error, statuscode int, w http.ResponseWriter) {
 		return
 	}
 	return
-
 }
 
 /*
