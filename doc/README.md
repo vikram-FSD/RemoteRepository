@@ -16,7 +16,7 @@ Parameter | Type | Description
 `IsActive`|`boolean`|When you receive post request, ensure you are making IsActive is true.
 `Country`| `string`|**Required.** should be in string and may have space
 
-**Method**
+**Method :**
 
 
 
@@ -73,7 +73,39 @@ InsertUser
 	}
 }
 ```
-***Method***
+**Method :**
+```
+// Checking if the emailID is already exist or not
+func IsEmailExists(user model.User) (bool, error) {
+	db, err := config.ConnectDB()
+	if err != nil {
+		return false, err
+	}
+	defer db.Close()
+	var emailaddress string
+	sqlStmt := `select emailaddress from users where emailaddress=$1`
+	err = db.QueryRow(sqlStmt, user.EmailAddress).Scan(&emailaddress)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		return false, nil
+	}
+	return true, nil
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+**Method :**
 
 Retrieve User
 ```
@@ -94,6 +126,11 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Write(jData)
 }
 ```
+**API urls :**
+
+POST :- ```http://localhost/user ```
+
+GET :- ```http://localhost/user```
 
 
 **Input :**
@@ -107,7 +144,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
   "country"      :    "India"
 }
 ```
-***Sequence Diagram***
+**Sequence Diagram**
 
 
 
