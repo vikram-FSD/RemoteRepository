@@ -108,6 +108,9 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 }
 ```
 ***Sequence Diagram***
+
+
+
 ![Get](./user.drawio.png)
 
 
