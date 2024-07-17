@@ -35,7 +35,7 @@ POST :- ```/user ```
 
 
 
-![Get](./InsertUser.md)
+![Get](./SignUp.drawio.png)
 
 
 
