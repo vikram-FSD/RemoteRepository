@@ -73,6 +73,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	inputvalidator.WriteJson(res, w)
+	return
 }
 
 // Checking if the emailID is already exist or not
