@@ -2,8 +2,8 @@ package user
 
 import (
 	"github.com/atomedgesoft/calendariq/config"
-	"github.com/atomedgesoft/calendariq/inputvalidator"
 	"github.com/atomedgesoft/calendariq/model"
+	"github.com/atomedgesoft/inputvalidator"
 )
 
 func InputValidation(user model.User) (map[string]string, map[string]string) {

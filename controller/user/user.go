@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/atomedgesoft/calendariq/config"
-	"github.com/atomedgesoft/calendariq/inputvalidator"
 	"github.com/atomedgesoft/calendariq/model"
+	"github.com/atomedgesoft/inputvalidator"
 )
 
 type Result struct {
@@ -41,12 +41,7 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 	user.IsActive = true
 
 	// Check if the email is already in use
-	exist, err := IsEmailExists(user)
-	if err != nil {
-		log.Println("Error checking email existence:", err)
-		inputvalidator.ErrorHandler(err, http.StatusInternalServerError, w)
-		return
-	}
+	exist, _ := IsEmailExists(user.EmailAddress)
 	if exist {
 		http.Error(w, "Email-ID already exists!", http.StatusBadRequest)
 		return
@@ -61,6 +56,7 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		if resultID != "" {
 			out := Result{Result: "New user added: " + user.Id}
 			inputvalidator.WriteJson(out, w)
+			return
 		} else {
 			http.Error(w, "User could not be added.", http.StatusInternalServerError)
 		}
@@ -69,6 +65,7 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 
 // GET USER
 func GetUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	var user model.User
 	res, err := model.GetUser(user)
 	if err != nil {
@@ -79,7 +76,7 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // Checking if the emailID is already exist or not
-func IsEmailExists(user model.User) (bool, error) {
+func IsEmailExists(email string) (bool, error) {
 	db, err := config.ConnectDB()
 	if err != nil {
 		return false, err
@@ -87,12 +84,12 @@ func IsEmailExists(user model.User) (bool, error) {
 	defer db.Close()
 	var emailaddress string
 	sqlStmt := `select emailaddress from users where emailaddress=$1`
-	err = db.QueryRow(sqlStmt, user.EmailAddress).Scan(&emailaddress)
+	err = db.QueryRow(sqlStmt, email).Scan(&emailaddress)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return false, nil
+			return false, err
 		}
-		return false, nil
+		return false, err
 	}
 	return true, nil
 }

@@ -5,6 +5,7 @@ go 1.22.4
 require github.com/AfterShip/email-verifier v1.4.0
 
 require (
+	github.com/atomedgesoft/inputvalidator v0.0.0-20240717061722-f1172c8aa4ec // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

@@ -1,7 +1,7 @@
 package model
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/atomedgesoft/calendariq/config"
 )
@@ -36,7 +36,8 @@ func InsertUser(user User) (string, error) {
 func GetUser(user User) ([]User, error) {
 	db, err := config.ConnectDB()
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
+		return nil, err
 	}
 	//query for retrieving the users from the Database
 	sqlStmt := `select * from users`

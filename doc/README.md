@@ -16,121 +16,11 @@ Parameter | Type | Description
 `IsActive`|`boolean`|When you receive post request, ensure you are making IsActive is true.
 `Country`| `string`|**Required.** should be in string and may have space
 
-**Method :**
-
-
-
-InsertUser
-
-```func InsertUser(w http.ResponseWriter, r *http.Request) {
-	var user model.User
-	w.Header().Set("Content-Type", "application/json")
-	inputvalidator.IsMethodValid(w, r, "POST")
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		log.Println("Error decoding user data:", err)
-		http.Error(w, "Invalid input", http.StatusBadRequest)
-		return
-	}
-	// Validating Inputs
-	response, errs := InputValidation(user)
-	if response["output"] != "valid" {
-		inputvalidator.WriteJson(response, w)
-		return
-	}
-	if len(errs) > 0 {
-		inputvalidator.WriteJson(errs, w)
-		return
-	}
-	user.Id = inputvalidator.GenerateRandomKey(config.Charset)
-	user.CreatedAt = config.CurrentDateTime(user.TimeZone)
-	user.IsActive = true
-
-	// Check if the email is already in use
-	exist, err := IsEmailExists(user)
-	if err != nil {
-		log.Println("Error checking email existence:", err)
-		inputvalidator.ErrorHandler(err, http.StatusInternalServerError, w)
-		return
-	}
-	if exist {
-		http.Error(w, "Email-ID already exists!", http.StatusBadRequest)
-		return
-	}
-	if !exist {
-		resultID, err := model.InsertUser(user)
-		if err != nil {
-			log.Println("Error inserting user:", err)
-			inputvalidator.ErrorHandler(err, http.StatusInternalServerError, w)
-			return
-		}
-		if resultID != "" {
-			out := Result{Result: "New user added: " + user.Id}
-			inputvalidator.WriteJson(out, w)
-		} else {
-			http.Error(w, "User could not be added.", http.StatusInternalServerError)
-		}
-	}
-}
-```
-**Method :**
-```
-// Checking if the emailID is already exist or not
-func IsEmailExists(user model.User) (bool, error) {
-	db, err := config.ConnectDB()
-	if err != nil {
-		return false, err
-	}
-	defer db.Close()
-	var emailaddress string
-	sqlStmt := `select emailaddress from users where emailaddress=$1`
-	err = db.QueryRow(sqlStmt, user.EmailAddress).Scan(&emailaddress)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return false, nil
-		}
-		return false, nil
-	}
-	return true, nil
-}
-```
-
-
-
-
-
-
-
-
-
-
-
-**Method :**
-
-Retrieve User
-```
-func GetUser(w http.ResponseWriter, r *http.Request) {
-	var user model.User
-	w.Header().Set("content-type", "application/json")
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		inputvalidator.ErrorHandler(err, 500, w)
-		return
-	}
-	res, err := model.GetUser(user)
-	if err != nil {
-		inputvalidator.ErrorHandler(err, http.StatusInternalServerError, w)
-		return
-	}
-	jData, _ := json.Marshal(res)
-	w.Write(jData)
-}
-```
 **API urls :**
 
-POST :- ```http://localhost/user ```
+POST :- ```/user ```
 
-GET :- ```http://localhost/user```
+GET :- ```/user```
 
 
 **Input :**
@@ -148,7 +38,7 @@ GET :- ```http://localhost/user```
 
 
 
-![Get](./user.drawio.png)
+![Get](./SignUp.drawio.png)
 
 
 
