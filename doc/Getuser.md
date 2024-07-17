@@ -3,7 +3,7 @@
 
 This Project is about to validate the user Data and perform insertion and retrieval of data from the Database
 
-**POST** `call`:
+**GET** `call`:
 
 Parameter | Type | Description
 --- | --- | --- |
@@ -18,24 +18,14 @@ Parameter | Type | Description
 
 **API urls :**
 
-POST :- ```/user ```
+GET :- ```/user```
 
-**Input :**
-```
-{
-  "firstname"    :    "Ganesh",
-  "lastname"     :    "P",
-  "emailaddress" :    "Ganes@gmail.com",
-  "signinthrough":    "Gmail",
-  "timezone"     :    "Asia/Calcutta",
-  "country"      :    "India"
-}
-```
+
 **Sequence Diagram**
 
 
 
-![Get](./user.drawio.png)
+![Get](./RetrieveUser.drawio.png)
 
 
 
