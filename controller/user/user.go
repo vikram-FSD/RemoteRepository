@@ -3,6 +3,7 @@ package user
 import (
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -36,12 +37,12 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		inputvalidator.WriteJson(errs, w)
 		return
 	}
-	user.Id = inputvalidator.GenerateRandomKey(config.Charset)
-	user.CreatedAt = config.CurrentDateTime(user.TimeZone)
-	user.IsActive = true
+	*user.Id = inputvalidator.GenerateRandomKey(config.Charset)
+	*user.CreatedAt = config.CurrentDateTime(*user.TimeZone)
+	*user.IsActive = true
 
 	// Check if the email is already in use
-	exist, _ := IsEmailExists(user.EmailAddress)
+	exist, _ := IsEmailExists(*user.EmailAddress)
 	if exist {
 		http.Error(w, "Email-ID already exists!", http.StatusBadRequest)
 		return
@@ -54,7 +55,7 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if resultID != "" {
-			out := Result{Result: "New user added: " + user.Id}
+			out := Result{Result: "New user added: " + *user.Id}
 			inputvalidator.WriteJson(out, w)
 			return
 		} else {
@@ -93,4 +94,17 @@ func IsEmailExists(email string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+// * Create / Update User Details on user_details table
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	var patch model.User
+	w.Header().Set("Content-Type", "application/json")
+	inputvalidator.IsMethodValid(w, r, "PATCH")
+	err := json.NewDecoder(r.Body).Decode(&patch)
+	if err != nil {
+		inputvalidator.ErrorHandler(err, 500, w)
+		return
+	}
+	fmt.Println(*patch.FirstName)
 }

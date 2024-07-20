@@ -19,6 +19,7 @@ func main() {
 	router := mux.NewRouter()
 	router.HandleFunc("/user", user.InsertUser).Methods("POST")
 	router.HandleFunc("/user", user.GetUser).Methods("GET")
+	router.HandleFunc("/user", user.UpdateUser).Methods(("PATCH"))
 	c := cors.AllowAll()
 	handler := c.Handler(router)
 	log.Println("Server started on :80")

@@ -1,21 +1,22 @@
 package model
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/atomedgesoft/calendariq/config"
 )
 
 type User struct {
-	Id            string `json:"id"`
-	FirstName     string `json:"firstname"`
-	LastName      string `json:"lastname"`
-	EmailAddress  string `json:"emailaddress"`
-	Signinthrough string `json:"signinthrough"`
-	CreatedAt     string `json:"createdat"`
-	TimeZone      string `json:"timezone"`
-	IsActive      bool   `json:"isactive"`
-	Country       string `json:"country"`
+	Id            *string `json:"id"`
+	FirstName     *string `json:"firstname"`
+	LastName      *string `json:"lastname"`
+	EmailAddress  *string `json:"emailaddress"`
+	Signinthrough *string `json:"signinthrough"`
+	CreatedAt     *string `json:"createdat"`
+	TimeZone      *string `json:"timezone"`
+	IsActive      *bool   `json:"isactive"`
+	Country       *string `json:"country"`
 }
 
 // POST API for USER
@@ -29,7 +30,7 @@ func InsertUser(user User) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return user.Id, nil
+	return *user.Id, nil
 }
 
 // GET API for USER
@@ -59,4 +60,132 @@ func GetUser(user User) ([]User, error) {
 	}
 	defer rows.Close()
 	return Usercontainer, nil
+}
+
+func GetUserDetailsById(userId string) (User, bool, error) {
+	var users User
+	db, _ := config.ConnectDB()
+	defer db.Close()
+	sql := "select * from users where id=$1"
+	data, err := db.Query(sql, userId)
+
+	for data.Next() {
+		err := data.Scan(&users.Id, &users.FirstName, &users.LastName, &users.EmailAddress, &users.Signinthrough, &users.TimeZone, &users.Country, &users.IsActive, &users.CreatedAt)
+		if err != nil {
+			return User{}, false, err
+		}
+		return users, true, err
+	}
+	return User{}, false, err
+}
+
+// UPDATE USER
+func UpdateUser(user User) (bool, error) {
+	var (
+		isAndAdded bool
+	)
+	// update users set firstname='vikram',lastname='pandian',emailaddress='vikram22@gmail.com' where id ='cr6fbb6m9114'
+	db, _ := config.ConnectDB()
+	defer db.Close()
+	sql := "update users set"
+	if user.FirstName != nil {
+		sql += "firstname = '" + *user.FirstName + "'"
+		isAndAdded = true
+	}
+	if user.LastName != nil {
+		if isAndAdded {
+			sql += ","
+		}
+		sql += "lastname = '" + *user.LastName + "'"
+		isAndAdded = true
+	}
+	if user.EmailAddress != nil {
+		if isAndAdded {
+			sql += ","
+		}
+		sql += "emailaddress = '" + *user.EmailAddress + "'"
+		isAndAdded = true
+	}
+	if user.Signinthrough != nil {
+		if isAndAdded {
+			sql += ","
+		}
+		sql += "signinthrough = '" + *user.Signinthrough + "'"
+		isAndAdded = true
+	}
+	if user.TimeZone != nil {
+		if isAndAdded {
+			sql += ","
+		}
+		sql += "timezone = '" + *user.TimeZone + "'"
+		isAndAdded = true
+	}
+	if user.Country != nil {
+		if isAndAdded {
+			sql += ","
+		}
+		sql += "country = '" + *user.Country + "'"
+		isAndAdded = true
+	}
+	if user.CreatedAt != nil {
+		sql += "createdat = '" + *user.CreatedAt + "'"
+		isAndAdded = true
+	}
+	sql += "where id=$1"
+	_, err := db.Exec(sql, user.Id)
+	return true, err
+
+}
+
+func CreateUserDetails(user *User, Id string) (string, error) {
+
+	db, _ := config.ConnectDB()
+	defer db.Close()
+	sqlStmt, sqldata := SqlStmtAndDataForUser(*user, Id)
+	var id string
+	err := db.QueryRow(sqlStmt, sqldata...).Scan(&id)
+	return id, err
+}
+func SqlStmtAndDataForUser(user User, Id string) (string, []interface{}) {
+	sql := "insert into users (id, firstname, lastname, emailaddress, signinthrough, timezone, country, isactive, createdat)"
+	var args []interface{}
+	args = append(args, Id, user.Id)
+	if user.FirstName != nil {
+		sql += ", firstname"
+		args = append(args, user.FirstName)
+	}
+	if user.LastName != nil {
+		sql += ", lastname"
+		args = append(args, user.LastName)
+	}
+	if user.EmailAddress != nil {
+		sql += ", emailaddress"
+		args = append(args, user.EmailAddress)
+	}
+	if user.Signinthrough != nil {
+		sql += ", signinthrough"
+		args = append(args, user.Signinthrough)
+	}
+	if user.TimeZone != nil {
+		sql += ", timezone"
+		args = append(args, user.TimeZone)
+	}
+	if user.Country != nil {
+		sql += ", country"
+		args = append(args, user.Country)
+	}
+	if user.IsActive != nil {
+		sql += ", firstname"
+		args = append(args, user.IsActive)
+	}
+	if user.CreatedAt != nil {
+		sql += ", createdat"
+		args = append(args, user.CreatedAt)
+	}
+	sql += ")VALUES ($1, $2 "
+	for i := range args[2:] {
+		sql += ", $" + fmt.Sprint(i+3)
+	}
+	sql += ") RETURNING id"
+	return sql, args
 }

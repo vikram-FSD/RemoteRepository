@@ -12,12 +12,12 @@ func InputValidation(user model.User) (map[string]string, map[string]string) {
 	messageArray := make(map[string]string)
 	errorArray := make(map[string]string)
 
-	response["firstname"], errors["firstname"] = inputvalidator.IsStringValid(config.Lang, user.FirstName, 50, true, "firstname")
-	response["lastname"], errors["lastname"] = inputvalidator.IsStringValid(config.Lang, user.LastName, 50, true, "lastname")
-	response["email"] = inputvalidator.IsEmailAddressValid(config.Lang, user.EmailAddress, 50)
-	response["signinthrough"], errors["signinthrough"] = inputvalidator.IsStringValid(config.Lang, user.Signinthrough, 50, false, "signinthrough")
-	response["timezone"], errors["timezone"] = inputvalidator.IsTimeZoneValid(config.Lang, user.TimeZone, 50, true, "timezone")
-	response["country"], errors["country"] = inputvalidator.IsStringWitSpaceValid(config.Lang, user.Country, 50, true, "country")
+	response["firstname"], errors["firstname"] = inputvalidator.IsStringValid(config.Lang, *user.FirstName, 50, true, "firstname")
+	response["lastname"], errors["lastname"] = inputvalidator.IsStringValid(config.Lang, *user.LastName, 50, true, "lastname")
+	response["email"] = inputvalidator.IsEmailAddressValid(config.Lang, *user.EmailAddress, 50)
+	response["signinthrough"], errors["signinthrough"] = inputvalidator.IsStringValid(config.Lang, *user.Signinthrough, 50, false, "signinthrough")
+	response["timezone"], errors["timezone"] = inputvalidator.IsTimeZoneValid(config.Lang, *user.TimeZone, 50, true, "timezone")
+	response["country"], errors["country"] = inputvalidator.IsStringWitSpaceValid(config.Lang, *user.Country, 50, true, "country")
 
 	// Loop for response
 	for key, value := range response {
