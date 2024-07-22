@@ -111,6 +111,10 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	validData, _ := InputValidation(patch)
 	if validData["output"] == "valid" {
 		updatedId, _ := model.UpdateUser(patch)
+		if updatedId == "" {
+			inputvalidator.WriteJson("No records found ", w)
+			return
+		}
 		result := make(map[string]string)
 		result["User Updated Successfulluy: "] = updatedId
 		inputvalidator.WriteJson(result, w)

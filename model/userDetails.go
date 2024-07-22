@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -85,15 +86,46 @@ func GetUserDetailsById(userId string) (User, error) {
 
 // UPDATE USER
 func UpdateUser(get User) (string, error) {
+	// var w http.ResponseWriter
 	var id string
 	db, _ := config.ConnectDB()
 	defer db.Close()
-	sql := "insert into users(id, firstname, lastname, emailaddress, signinthrough, timezone, country, isactive, createdat) values($1, $2, $3, $4, $5, $6, $7, $8, $9) on conflict(id) do update set firstname=Excluded.firstname,lastname=Excluded.lastname,emailaddress=Excluded.emailaddress,signinthrough=Excluded.signinthrough,createdat=Excluded.createdat,timezone=Excluded.timezone,country=Excluded.country,isactive=Excluded.isactive RETURNING id"
-	err := db.QueryRow(sql, &get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.TimeZone, &get.Country, &get.IsActive, &get.CreatedAt).Scan(&id)
+	IsIdExist, err := IsIdExist(get.Id)
 	if err != nil {
-		return "", err
+		// inputvalidator.WriteJson("Id not Matching with the table", w)
+		fmt.Println(err)
+
+	}
+	if IsIdExist {
+		sql := "insert into users(id, firstname, lastname, emailaddress, signinthrough, timezone, country, isactive, createdat) values($1, $2, $3, $4, $5, $6, $7, $8, $9) on conflict(id) do update set firstname=Excluded.firstname,lastname=Excluded.lastname,emailaddress=Excluded.emailaddress,signinthrough=Excluded.signinthrough,createdat=Excluded.createdat,timezone=Excluded.timezone,country=Excluded.country,isactive=Excluded.isactive RETURNING id"
+		err := db.QueryRow(sql, &get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.TimeZone, &get.Country, &get.IsActive, &get.CreatedAt).Scan(&id)
+		if err != nil {
+			return "", err
+		}
+
 	}
 	return id, nil
+}
+
+// To check if the Id is existing in the table or not
+func IsIdExist(id string) (bool, error) {
+
+	db, err := config.ConnectDB()
+	if err != nil {
+		return false, err
+	}
+	defer db.Close()
+	var userId string
+	sqlStmt := `select id from users where id=$1`
+	err = db.QueryRow(sqlStmt, id).Scan(&userId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, err
+		}
+		return false, err
+	}
+	return true, nil
+
 }
 func DeleteUserDetailsById(id string) (string, error) {
 	db, _ := config.ConnectDB()
