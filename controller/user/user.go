@@ -10,6 +10,7 @@ import (
 	"github.com/atomedgesoft/calendariq/config"
 	"github.com/atomedgesoft/calendariq/model"
 	"github.com/atomedgesoft/inputvalidator"
+	"github.com/gorilla/mux"
 )
 
 type Result struct {
@@ -37,12 +38,12 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		inputvalidator.WriteJson(errs, w)
 		return
 	}
-	*user.Id = inputvalidator.GenerateRandomKey(config.Charset)
-	*user.CreatedAt = config.CurrentDateTime(*user.TimeZone)
-	*user.IsActive = true
+	user.Id = inputvalidator.GenerateRandomKey(config.Charset)
+	user.CreatedAt = config.CurrentDateTime(user.TimeZone)
+	user.IsActive = true
 
 	// Check if the email is already in use
-	exist, _ := IsEmailExists(*user.EmailAddress)
+	exist, _ := IsEmailExists(user.EmailAddress)
 	if exist {
 		http.Error(w, "Email-ID already exists!", http.StatusBadRequest)
 		return
@@ -55,7 +56,7 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if resultID != "" {
-			out := Result{Result: "New user added: " + *user.Id}
+			out := Result{Result: "New user added: " + user.Id}
 			inputvalidator.WriteJson(out, w)
 			return
 		} else {
@@ -116,4 +117,33 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	inputvalidator.WriteJson(validData, w)
+}
+
+// Get User by ID function
+func GetUserById(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var Result model.User
+	inputs := mux.Vars(r) //mux.Vars(r)    which get the request Input id sent by the url in post man
+	Result, err := model.GetUserDetailsById(inputs["id"])
+	if err != nil {
+		inputvalidator.ErrorHandler(err, 500, w)
+		return
+	}
+	if len(Result.Id) == 0 {
+		fmt.Println("User not found")
+	}
+	inputvalidator.WriteJson(Result, w)
+}
+func DeleteUserById(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	// var Result model.User
+	inputs := mux.Vars(r)
+	res, err := model.DeleteUserDetailsById(inputs["id"])
+	if err != nil {
+		inputvalidator.ErrorHandler(err, 500, w)
+	}
+	out := Result{Result: "Deleted Successfully" + res}
+
+	inputvalidator.WriteJson(out, w)
+
 }

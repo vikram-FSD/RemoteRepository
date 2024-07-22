@@ -20,6 +20,8 @@ func main() {
 	router.HandleFunc("/user", user.InsertUser).Methods("POST")
 	router.HandleFunc("/user", user.GetUser).Methods("GET")
 	router.HandleFunc("/user", user.UpdateUser).Methods(("PATCH"))
+	router.HandleFunc("/user/{id}", user.GetUserById).Methods(("GET"))
+	router.HandleFunc("/user/{id}", user.DeleteUserById).Methods("DELETE")
 	c := cors.AllowAll()
 	handler := c.Handler(router)
 	log.Println("Server started on :80")
