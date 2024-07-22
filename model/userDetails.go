@@ -80,61 +80,16 @@ func GetUserDetailsById(userId string) (User, bool, error) {
 }
 
 // UPDATE USER
-func UpdateUser(user User) (bool, error) {
-	var (
-		isAndAdded bool
-	)
-	// update users set firstname='vikram',lastname='pandian',emailaddress='vikram22@gmail.com' where id ='cr6fbb6m9114'
+func UpdateUser(get User) (string, error) {
+	var id string
 	db, _ := config.ConnectDB()
 	defer db.Close()
-	sql := "update users set"
-	if user.FirstName != nil {
-		sql += "firstname = '" + *user.FirstName + "'"
-		isAndAdded = true
+	sql := "insert into users(id, firstname, lastname, emailaddress, signinthrough, createdat, timezone, country, isactive) values($1, $2, $3, $4, $5, $6, $7, $8, $9) on conflict(id) do update set firstname=Excluded.firstname,lastname=Excluded.lastname,emailaddress=Excluded.emailaddress,signinthrough=Excluded.signinthrough,createdat=Excluded.createdat,timezone=Excluded.timezone,country=Excluded.country,isactive=Excluded.isactive RETURNING id"
+	err := db.QueryRow(sql, &get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.CreatedAt, &get.TimeZone, &get.Country, &get.IsActive).Scan(&id)
+	if err != nil {
+		return "", err
 	}
-	if user.LastName != nil {
-		if isAndAdded {
-			sql += ","
-		}
-		sql += "lastname = '" + *user.LastName + "'"
-		isAndAdded = true
-	}
-	if user.EmailAddress != nil {
-		if isAndAdded {
-			sql += ","
-		}
-		sql += "emailaddress = '" + *user.EmailAddress + "'"
-		isAndAdded = true
-	}
-	if user.Signinthrough != nil {
-		if isAndAdded {
-			sql += ","
-		}
-		sql += "signinthrough = '" + *user.Signinthrough + "'"
-		isAndAdded = true
-	}
-	if user.TimeZone != nil {
-		if isAndAdded {
-			sql += ","
-		}
-		sql += "timezone = '" + *user.TimeZone + "'"
-		isAndAdded = true
-	}
-	if user.Country != nil {
-		if isAndAdded {
-			sql += ","
-		}
-		sql += "country = '" + *user.Country + "'"
-		isAndAdded = true
-	}
-	if user.CreatedAt != nil {
-		sql += "createdat = '" + *user.CreatedAt + "'"
-		isAndAdded = true
-	}
-	sql += "where id=$1"
-	_, err := db.Exec(sql, user.Id)
-	return true, err
-
+	return id, nil
 }
 
 func CreateUserDetails(user *User, Id string) (string, error) {

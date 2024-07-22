@@ -106,5 +106,14 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		inputvalidator.ErrorHandler(err, 500, w)
 		return
 	}
-	fmt.Println(*patch.FirstName)
+	fmt.Println(patch)
+	validData, _ := InputValidation(patch)
+	if validData["output"] == "valid" {
+		updatedId, _ := model.UpdateUser(patch)
+		result := make(map[string]string)
+		result["User Updated Successfulluy: "] = updatedId
+		inputvalidator.WriteJson(result, w)
+		return
+	}
+	inputvalidator.WriteJson(validData, w)
 }
