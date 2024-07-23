@@ -2,10 +2,11 @@ package model
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/atomedgesoft/calendariq/config"
+	"github.com/atomedgesoft/inputvalidator"
 )
 
 type User struct {
@@ -86,15 +87,13 @@ func GetUserDetailsById(userId string) (User, error) {
 
 // UPDATE USER
 func UpdateUser(get User) (string, error) {
-	// var w http.ResponseWriter
+	var w http.ResponseWriter
 	var id string
 	db, _ := config.ConnectDB()
 	defer db.Close()
 	IsIdExist, err := IsIdExist(get.Id)
 	if err != nil {
-		// inputvalidator.WriteJson("Id not Matching with the table", w)
-		fmt.Println(err)
-
+		inputvalidator.WriteJson("Id not Matching with the table", w)
 	}
 	if IsIdExist {
 		sql := "insert into users(id, firstname, lastname, emailaddress, signinthrough, timezone, country, isactive, createdat) values($1, $2, $3, $4, $5, $6, $7, $8, $9) on conflict(id) do update set firstname=Excluded.firstname,lastname=Excluded.lastname,emailaddress=Excluded.emailaddress,signinthrough=Excluded.signinthrough,createdat=Excluded.createdat,timezone=Excluded.timezone,country=Excluded.country,isactive=Excluded.isactive RETURNING id"
@@ -102,14 +101,12 @@ func UpdateUser(get User) (string, error) {
 		if err != nil {
 			return "", err
 		}
-
 	}
 	return id, nil
 }
 
 // To check if the Id is existing in the table or not
 func IsIdExist(id string) (bool, error) {
-
 	db, err := config.ConnectDB()
 	if err != nil {
 		return false, err
@@ -125,14 +122,15 @@ func IsIdExist(id string) (bool, error) {
 		return false, err
 	}
 	return true, nil
-
 }
 func DeleteUserDetailsById(id string) (string, error) {
-	db, _ := config.ConnectDB()
+	var w http.ResponseWriter
+	db, err := config.ConnectDB()
+	if err != nil {
+		inputvalidator.ErrorHandler(err, 500, w)
+	}
 	defer db.Close()
 	sql := "delete from users where id=$1"
-	data := db.QueryRow(sql, id)
-	fmt.Println(data)
-
+	db.QueryRow(sql, id)
 	return id, nil
 }

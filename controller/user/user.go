@@ -3,7 +3,6 @@ package user
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -107,7 +106,6 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		inputvalidator.ErrorHandler(err, 500, w)
 		return
 	}
-	fmt.Println(patch)
 	validData, _ := InputValidation(patch)
 	if validData["output"] == "valid" {
 		updatedId, _ := model.UpdateUser(patch)
@@ -134,20 +132,25 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(Result.Id) == 0 {
-		fmt.Println("User not found")
+		message := make(map[string]string)
+		message["output"] = "No record Found with this ID !"
+		inputvalidator.WriteJson(message, w)
+		return
 	}
 	inputvalidator.WriteJson(Result, w)
 }
 func DeleteUserById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	// var Result model.User
 	inputs := mux.Vars(r)
-	res, err := model.DeleteUserDetailsById(inputs["id"])
-	if err != nil {
-		inputvalidator.ErrorHandler(err, 500, w)
+	idFound, err := model.GetUserDetailsById(inputs["id"])
+	if idFound.Id != "" {
+		res, err := model.DeleteUserDetailsById(inputs["id"])
+		if err != nil {
+			inputvalidator.ErrorHandler(err, 500, w)
+		}
+		out := Result{Result: "Deleted Successfully :" + res}
+		inputvalidator.WriteJson(out, w)
 	}
-	out := Result{Result: "Deleted Successfully" + res}
-
-	inputvalidator.WriteJson(out, w)
+	inputvalidator.ErrorHandler(err, 500, w)
 
 }
