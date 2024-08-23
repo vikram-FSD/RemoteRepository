@@ -26,7 +26,7 @@ func InsertUser(user User) (string, error) {
 	db, _ := config.ConnectDB()
 	defer db.Close()
 
-	sqlStmt := `insert into users(id, firstname, lastname, emailaddress, signinthrough, createdat,  timezone, country,isactive)values($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`
+	sqlStmt := `insert into "user"(id, firstname, lastname, emailaddress, signinthrough, createdat,  timezone, country,isactive)values($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`
 
 	err := db.QueryRow(sqlStmt, user.Id, user.FirstName, user.LastName, user.EmailAddress, user.Signinthrough, user.CreatedAt, user.TimeZone, user.Country, user.IsActive).Scan(&user.Id)
 	if err != nil {
@@ -43,7 +43,7 @@ func GetUser(user User) ([]User, error) {
 		return nil, err
 	}
 	//query for retrieving the users from the Database
-	sqlStmt := `select * from users`
+	sqlStmt := `select * from "user"`
 	rows, err := db.Query(sqlStmt)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func GetUserDetailsById(userId string) (User, error) {
 	var users User
 	db, _ := config.ConnectDB()
 	defer db.Close()
-	sql := "select * from users where id=$1"
+	sql := `select * from "user" where id=$1`
 	data, err := db.Query(sql, userId)
 	if err != nil {
 		log.Println(err)
@@ -96,7 +96,7 @@ func UpdateUser(get User) (string, error) {
 		inputvalidator.WriteJson("Id not Matching with the table", w)
 	}
 	if IsIdExist {
-		sql := "insert into users(id, firstname, lastname, emailaddress, signinthrough, timezone, country, isactive, createdat) values($1, $2, $3, $4, $5, $6, $7, $8, $9) on conflict(id) do update set firstname=Excluded.firstname,lastname=Excluded.lastname,emailaddress=Excluded.emailaddress,signinthrough=Excluded.signinthrough,createdat=Excluded.createdat,timezone=Excluded.timezone,country=Excluded.country,isactive=Excluded.isactive RETURNING id"
+		sql := `insert into "user"(id, firstname, lastname, emailaddress, signinthrough, timezone, country, isactive, createdat) values($1, $2, $3, $4, $5, $6, $7, $8, $9) on conflict(id) do update set firstname=Excluded.firstname,lastname=Excluded.lastname,emailaddress=Excluded.emailaddress,signinthrough=Excluded.signinthrough,createdat=Excluded.createdat,timezone=Excluded.timezone,country=Excluded.country,isactive=Excluded.isactive RETURNING id`
 		err := db.QueryRow(sql, &get.Id, &get.FirstName, &get.LastName, &get.EmailAddress, &get.Signinthrough, &get.TimeZone, &get.Country, &get.IsActive, &get.CreatedAt).Scan(&id)
 		if err != nil {
 			return "", err
@@ -113,7 +113,7 @@ func IsIdExist(id string) (bool, error) {
 	}
 	defer db.Close()
 	var userId string
-	sqlStmt := `select id from users where id=$1`
+	sqlStmt := `select id from "user" where id=$1`
 	err = db.QueryRow(sqlStmt, id).Scan(&userId)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -130,7 +130,7 @@ func DeleteUserDetailsById(id string) (string, error) {
 		inputvalidator.ErrorHandler(err, 500, w)
 	}
 	defer db.Close()
-	sql := "delete from users where id=$1"
+	sql := `delete from "user" where id=$1`
 	db.QueryRow(sql, id)
 	return id, nil
 }

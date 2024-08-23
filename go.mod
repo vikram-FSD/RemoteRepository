@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/gorilla/mux v1.8.1
 	github.com/hbollon/go-edlib v1.6.0 // indirect
 	github.com/lib/pq v1.10.9

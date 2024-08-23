@@ -12,10 +12,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type Result struct {
-	Result string `json:"result"`
-}
-
 // POST USER
 func InsertUser(w http.ResponseWriter, r *http.Request) {
 	var user model.User
@@ -37,9 +33,9 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		inputvalidator.WriteJson(errs, w)
 		return
 	}
-	user.Id = inputvalidator.GenerateRandomKey(config.Charset)
-	user.CreatedAt = config.CurrentDateTime(user.TimeZone)
-	user.IsActive = true
+	// user.Id = inputvalidator.GenerateRandomKey(config.Charset)
+	// user.CreatedAt = config.CurrentDateTime(user.TimeZone)
+	// user.IsActive = true
 
 	// Check if the email is already in use
 	exist, _ := IsEmailExists(user.EmailAddress)
@@ -55,7 +51,7 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if resultID != "" {
-			out := Result{Result: "New user added: " + user.Id}
+			out := "New user added"
 			inputvalidator.WriteJson(out, w)
 			return
 		} else {
@@ -144,11 +140,11 @@ func DeleteUserById(w http.ResponseWriter, r *http.Request) {
 	inputs := mux.Vars(r)
 	idFound, err := model.GetUserDetailsById(inputs["id"])
 	if idFound.Id != "" {
-		res, err := model.DeleteUserDetailsById(inputs["id"])
+		_, err := model.DeleteUserDetailsById(inputs["id"])
 		if err != nil {
 			inputvalidator.ErrorHandler(err, 500, w)
 		}
-		out := Result{Result: "Deleted Successfully :" + res}
+		out := "Deleted Successfully"
 		inputvalidator.WriteJson(out, w)
 	}
 	inputvalidator.ErrorHandler(err, 500, w)
