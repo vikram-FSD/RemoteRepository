@@ -11,13 +11,17 @@ import (
 )
 
 func main() {
+
 	db, err := config.ConnectDB()
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 	defer db.Close()
 	router := mux.NewRouter()
-	router.HandleFunc("/user", user.InsertUser).Methods("POST")
+	router.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
+		user.InsertUser(db, w, r)
+	}).Methods("POST")
+
 	router.HandleFunc("/user", user.GetUser).Methods("GET")
 	router.HandleFunc("/user", user.UpdateUser).Methods(("PATCH"))
 	router.HandleFunc("/user/{id}", user.GetUserById).Methods(("GET"))

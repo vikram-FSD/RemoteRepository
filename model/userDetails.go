@@ -22,12 +22,9 @@ type User struct {
 }
 
 // POST API for USER
-func InsertUser(user User) (string, error) {
-	db, _ := config.ConnectDB()
-	defer db.Close()
+func InsertUser(db *sql.DB, user User) (string, error) {
 
 	sqlStmt := `insert into "user"(id, firstname, lastname, emailaddress, signinthrough, createdat,  timezone, country,isactive)values($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`
-
 	err := db.QueryRow(sqlStmt, user.Id, user.FirstName, user.LastName, user.EmailAddress, user.Signinthrough, user.CreatedAt, user.TimeZone, user.Country, user.IsActive).Scan(&user.Id)
 	if err != nil {
 		return "", err

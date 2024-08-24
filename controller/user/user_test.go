@@ -3,60 +3,99 @@ package user
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/atomedgesoft/calendariq/model"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMain(m *testing.M) {
-	fmt.Println("Hello")
-	os.Exit(m.Run())
-}
 func TestInsertUser(t *testing.T) {
-	// Create a new mock database connection and the associated mock object
-
+	user := map[string]interface{}{
+		"firstname":     "John",
+		"lastname":      "Doe",
+		"emailaddress":  "john.doe@example.com",
+		"signinthrough": "email",
+		"createdat":     "2024-08-23T07:57:28Z",
+		"timezone":      "UTC",
+		"country":       "USA",
+		"isactive":      true,
+	}
+	userJSON, err := json.Marshal(user)
+	if err != nil {
+		t.Fatalf("Failed to marshal the user data %v", err)
+	}
 	db, mock, err := sqlmock.New()
 	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+		t.Fatalf("Error Initializing the Mock DB: %v", err)
 	}
 	defer db.Close()
-	// Define the expected user input
-	user := model.User{
-		Id:            "12345",
-		FirstName:     "Vikram",
-		LastName:      "R",
-		EmailAddress:  "Vikram2@gmail.com",
-		Signinthrough: "Gmail",
-		CreatedAt:     "2024-08-23T14:30:00Z",
-		TimeZone:      "UTC",
-		Country:       "INDIA",
-		IsActive:      true,
-	}
-	mock.ExpectQuery(`insert into "user"(id, firstname, lastname, emailaddress, signinthrough, createdat,  timezone, country,isactive)`).
-		WithArgs(user.Id, user.FirstName, user.LastName, user.EmailAddress, user.Signinthrough, user.CreatedAt, user.TimeZone, user.Country, user.IsActive)
-	reqBody, _ := json.Marshal(user)
-	req, err := http.NewRequest("POST", "/user", bytes.NewBuffer(reqBody))
+	//Expected query and response for mock database
+	mock.ExpectQuery(`insert into "user"`).WithArgs(sqlmock.AnyArg(), "John", "Doe", "john.doe@example.com", "email", sqlmock.AnyArg(), "UTC", "USA", true).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow("12345"))
+	req, err := http.NewRequest("POST", "/user", bytes.NewBuffer(userJSON))
 	if err != nil {
 		t.Fatal(err)
 	}
-	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		InsertUser(w, r)
+		InsertUser(db, w, r)
 	})
 	handler.ServeHTTP(rr, req)
-	assert.Equal(t, http.StatusOK, rr.Code, "Expected status code 200")
-	Output, _ := json.Marshal("New user added")
-
-	expectedResponse := Output
-	assert.EqualValues(t, expectedResponse, rr.Body.String(), "Response body differs")
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Expected status code %v , but get %v", http.StatusOK, status)
 	}
+	expectedResponse := `"New user added"`
+	actualResponse := rr.Body.String()
+	assert.Equal(t, expectedResponse, actualResponse, "Expected Response %v, but got %v", expectedResponse, actualResponse)
+
+}
+
+func TestGetUser(t *testing.T) {
+
+	req, err := http.NewRequest("GET", "/user", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(GetUser)
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	expected := `
+	[
+    {
+        "id": "123",
+        "firstname": "John",
+        "lastname": "Doe",
+        "emailaddress": "john.doe@example.com",
+        "signinthrough": "email",
+        "createdat": "2024-08-23T00:00:00Z",
+        "timezone": "UTC",
+        "isactive": true,
+        "country": "USA"
+    },
+    {
+        "id": "1001",
+        "firstname": "John",
+        "lastname": "Doe",
+        "emailaddress": "john.doe@example.com",
+        "signinthrough": "email",
+        "createdat": "2024-08-23T00:00:00Z",
+        "timezone": "UTC",
+        "isactive": true,
+        "country": "USA"
+    }
+]`
+	assert.JSONEq(t, expected, rr.Body.String())
+}
+func TestGetUserById(t *testing.T) {
+	req, err := http.NewRequest("GET", "/user/{id}", nil)
+	if err != nil {
+		t.Error(err)
+	}
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(GetUser)
+	handler.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
 }

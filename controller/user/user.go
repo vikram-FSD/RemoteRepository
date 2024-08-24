@@ -13,7 +13,7 @@ import (
 )
 
 // POST USER
-func InsertUser(w http.ResponseWriter, r *http.Request) {
+func InsertUser(db *sql.DB, w http.ResponseWriter, r *http.Request) {
 	var user model.User
 	w.Header().Set("Content-Type", "application/json")
 	inputvalidator.IsMethodValid(w, r, "POST")
@@ -33,9 +33,9 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		inputvalidator.WriteJson(errs, w)
 		return
 	}
-	// user.Id = inputvalidator.GenerateRandomKey(config.Charset)
-	// user.CreatedAt = config.CurrentDateTime(user.TimeZone)
-	// user.IsActive = true
+	user.Id = inputvalidator.GenerateRandomKey(config.Charset)
+	user.CreatedAt = config.CurrentDateTime(user.TimeZone)
+	user.IsActive = true
 
 	// Check if the email is already in use
 	exist, _ := IsEmailExists(user.EmailAddress)
@@ -44,7 +44,7 @@ func InsertUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !exist {
-		resultID, err := model.InsertUser(user)
+		resultID, err := model.InsertUser(db, user)
 		if err != nil {
 			log.Println("Error inserting user:", err)
 			inputvalidator.ErrorHandler(err, http.StatusInternalServerError, w)
